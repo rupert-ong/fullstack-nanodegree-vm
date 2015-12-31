@@ -33,6 +33,17 @@ def deletePlayers():
     db.close()
 
 
+def deleteTournaments():
+    """Remove all the tournament records from the database."""
+    db = connect()
+    c = db.cursor()
+
+    query = "DELETE FROM tournaments"
+    c.execute(query)
+    db.commit()
+    db.close()
+
+
 def countPlayers():
     """Returns the number of players currently registered."""
     db = connect()
@@ -63,6 +74,32 @@ def registerPlayer(name):
 
     db.commit()
     db.close()
+
+
+def registerTournament(name):
+    """Adds a tournament to the tournament database.
+
+    The database assigns a unique serial id number for the tournament.  (This
+    should be handled by your SQL database schema, not in your Python code.)
+
+    Args:
+        name: the tournament's name (need not be unique).
+
+    Returns:
+        id: tournament id (unique) for use in other functions like
+            registerPlayer and countPlayers
+    """
+    db = connect()
+    c = db.cursor()
+
+    query = "INSERT INTO tournaments (name) VALUES(%s) RETURNING id"
+    c.execute(query, (name,))
+    id = c.fetchone()[0]
+
+    db.commit()
+    db.close()
+
+    return id
 
 
 def playerStandings():
