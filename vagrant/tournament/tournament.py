@@ -35,6 +35,15 @@ def deletePlayers():
 
 def countPlayers():
     """Returns the number of players currently registered."""
+    db = connect()
+    c = db.cursor()
+
+    query = "SELECT COUNT(*) AS num FROM players"
+    c.execute(query)
+    count = c.fetchone()[0]
+    db.close()
+
+    return count
 
 
 def registerPlayer(name):
@@ -44,8 +53,16 @@ def registerPlayer(name):
     should be handled by your SQL database schema, not in your Python code.)
 
     Args:
-      name: the player's full name (need not be unique).
+        name: the player's full name (need not be unique).
     """
+    db = connect()
+    c = db.cursor()
+
+    query = "INSERT INTO players (name) VALUES(%s)"
+    c.execute(query, (name,))
+
+    db.commit()
+    db.close()
 
 
 def playerStandings():
