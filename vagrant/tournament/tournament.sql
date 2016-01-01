@@ -13,12 +13,12 @@ CREATE TABLE tournaments (  id SERIAL PRIMARY KEY,
                             name TEXT );
 
 CREATE TABLE matches (  id SERIAL PRIMARY KEY,
-                        tournament INT REFERENCES tournaments(id),
-                        winner INT REFERENCES players(id),
-                        loser INT REFERENCES players(id),
+                        tournament INT,
+                        winner INT,
+                        loser INT,
                         draw BOOLEAN );
 
-CREATE TABLE player_standings ( tournament INT REFERENCES tournaments(id),
-                                player INT REFERENCES players(id),
+CREATE TABLE player_standings ( tournament INT,
+                                player INT,
                                 score INT,
                                 matches INT);
