@@ -135,12 +135,29 @@ def playerStandings():
 
 
 def reportMatch(winner, loser):
-    """Records the outcome of a single match between two players.
+    """Records the outcome of a single match between two players. Updates Player Standings.
 
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
+
+    db = connect()
+    c = db.cursor()
+
+    query_match = "INSERT INTO matches (winner, loser) VALUES (%s, %s)"
+    c.execute(query_match, (winner, loser,))
+
+    query_winner = """UPDATE player_standings SET score = score + 1, matches = matches + 1
+                    WHERE player = %s"""
+    c.execute(query_winner, (winner,))
+
+    query_loser = """UPDATE player_standings SET matches = matches + 1
+                    WHERE player = %s"""
+    c.execute(query_loser, (loser,))
+
+    db.commit()
+    db.close()
 
 
 def swissPairings():
