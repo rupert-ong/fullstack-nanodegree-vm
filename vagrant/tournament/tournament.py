@@ -69,8 +69,12 @@ def registerPlayer(name):
     db = connect()
     c = db.cursor()
 
-    query = "INSERT INTO players (name) VALUES(%s)"
-    c.execute(query, (name,))
+    query_player = "INSERT INTO players (name) VALUES(%s) RETURNING id"
+    c.execute(query_player, (name,))
+    player_id = c.fetchone()[0]
+
+    query_player_standing = "INSERT INTO player_standings (player, score, matches) VALUES(%s, %s, %s)"
+    c.execute(query_player_standing, (player_id, 0, 0,))
 
     db.commit()
     db.close()
@@ -115,6 +119,19 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
+    db = connect()
+    c = db.cursor()
+
+    query = """SELECT ps.player, p.name, ps.score, ps.matches
+                FROM player_standings AS ps, players AS p
+                WHERE ps.player = p.id
+                ORDER BY ps.score DESC, ps.matches DESC
+            """
+    c.execute(query)
+    players = c.fetchall()
+    db.close()
+
+    return players
 
 
 def reportMatch(winner, loser):
