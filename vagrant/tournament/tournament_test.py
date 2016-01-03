@@ -63,6 +63,27 @@ def testRegisterCountDelete():
     print "5. Players can be registered and deleted."
 
 
+def testTournamentRegisterCountDelete():
+    deleteMatches()
+    deletePlayers()
+    deleteTournaments()
+    tournament_1 = registerTournament("Fun League")
+    tournament_2 = registerTournament("Pro League")
+    registerPlayer("Markov Chaney", tournament_1)
+    registerPlayer("Joe Malik", tournament_1)
+    registerPlayer("Mao Tsu-hsi", tournament_1)
+    registerPlayer("Atlanta Hope", tournament_2)
+    c = countTournamentPlayers(tournament_1)
+    if c != 3:
+        raise ValueError(
+            "After registering three players, countTournamentPlayers should be 3.")
+    deleteTournamentPlayerStandings(tournament_1)
+    c = countTournamentPlayers(tournament_1)
+    if c != 0:
+        raise ValueError("After deleting, countTournmanentPlayers should return zero.")
+    print "5a. Tournament Players can be registered and deleted."
+
+
 def testStandingsBeforeMatches():
     deleteMatches()
     deletePlayers()
@@ -144,6 +165,7 @@ if __name__ == '__main__':
     testCount()
     testRegister()
     testRegisterCountDelete()
+    testTournamentRegisterCountDelete()
     testStandingsBeforeMatches()
     testReportMatches()
     testPairings()

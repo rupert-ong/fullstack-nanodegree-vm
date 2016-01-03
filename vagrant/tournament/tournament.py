@@ -106,6 +106,26 @@ def countPlayers():
     return count
 
 
+def countTournamentPlayers(t_id):
+    """Returns the number of players currently registered in a specific
+    tournament from player_standings table.
+
+        Args:
+            t_id: tournament id (unique)
+
+    """
+    db = connect()
+    c = db.cursor()
+
+    query = """SELECT COUNT(*) AS num FROM player_standings
+        WHERE tournament = %s"""
+    c.execute(query, (t_id,))
+    count = c.fetchone()[0]
+    db.close()
+
+    return count
+
+
 def registerPlayer(name, t_id):
     """Adds a player to the tournament database to a specific tournament.
 
