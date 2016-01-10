@@ -143,8 +143,8 @@ def registerPlayer(name, t_id):
     c.execute(query_player, (name,))
 
     player_id = c.fetchone()[0]
-    query_player_standing = """INSERT INTO player_standings (tournament, player, score,
-        matches) VALUES(%s, %s, %s, %s)"""
+    query_player_standing = """INSERT INTO player_standings (tournament,
+        player, score, matches) VALUES(%s, %s, %s, %s)"""
     c.execute(query_player_standing, (t_id, player_id, 0, 0,))
 
     db.commit()
@@ -187,21 +187,29 @@ def playerStandings(t_id):
         t_id: tournament id (unique).
 
     Returns:
-      A list of tuples, each of which contains (id, name, score, matches):
+      A list of tuples, each of which contains (id, name, score, matches, omw):
         id: the player's unique id (assigned by the database)
         name: the player's full name (as registered)
-        score: total points for wins and draws accumulated (2 for wins, 1 for draws)
+        score: total points for wins and draws (2 for wins, 1 for draws)
         matches: the number of matches the player has played
+        omw: total points of opponents a player has faced
     """
     db = connect()
     c = db.cursor()
 
-    query = """SELECT ps.player, p.name, ps.score, ps.matches
+    query = """SELECT ps.player, p.name, ps.score, ps.matches,
+                (SELECT SUM(ps2.score)
+                    FROM player_standings AS ps2
+                    WHERE ps2.player IN (SELECT loser FROM matches
+                        WHERE winner = ps.player AND tournament = %s)
+                    OR ps2.player IN (SELECT winner FROM matches
+                        WHERE loser = ps.player AND tournament = %s)
+                ) AS omw
                 FROM player_standings AS ps, players AS p
                 WHERE ps.player = p.id AND ps.tournament = %s
-                ORDER BY ps.score DESC, ps.matches DESC
+                ORDER BY ps.score DESC, omw DESC, ps.matches DESC
             """
-    c.execute(query, (t_id,))
+    c.execute(query, (t_id, t_id, t_id))
     players = c.fetchall()
     db.close()
 
@@ -209,7 +217,8 @@ def playerStandings(t_id):
 
 
 def reportMatch(t_id, winner, loser, draw=False):
-    """Records the outcome of a single match between two players. Updates Player Standings.
+    """Records the outcome of a single match between two players. Updates Player
+    Standings.
 
     Args:
         t_id: the tournament id
@@ -221,7 +230,8 @@ def reportMatch(t_id, winner, loser, draw=False):
     db = connect()
     c = db.cursor()
 
-    query_match = "INSERT INTO matches (tournament, winner, loser, draw) VALUES (%s, %s, %s, %s)"
+    query_match = """INSERT INTO matches (tournament, winner, loser, draw)
+                    VALUES (%s, %s, %s, %s)"""
     c.execute(query_match, (t_id, winner, loser, draw))
 
     if(draw is False):
@@ -230,7 +240,8 @@ def reportMatch(t_id, winner, loser, draw=False):
     else:
         win_score = lose_score = 1
 
-    query_player = """UPDATE player_standings SET score = score + %s, matches = matches + 1
+    query_player = """UPDATE player_standings SET score = score + %s,
+                    matches = matches + 1
                     WHERE tournament = %s AND player = %s"""
 
     c.execute(query_player, (win_score, t_id, winner))
