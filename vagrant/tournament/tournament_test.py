@@ -99,8 +99,8 @@ def testStandingsBeforeMatches():
         raise ValueError("Only registered players should appear in standings.")
     if len(standings[0]) != 4:
         raise ValueError("Each playerStandings row should have four columns.")
-    [(id1, name1, wins1, matches1), (id2, name2, wins2, matches2)] = standings
-    if matches1 != 0 or matches2 != 0 or wins1 != 0 or wins2 != 0:
+    [(id1, name1, score1, matches1), (id2, name2, score2, matches2)] = standings
+    if matches1 != 0 or matches2 != 0 or score1 != 0 or score2 != 0:
         raise ValueError(
             "Newly registered players should have no matches or wins.")
     if set([name1, name2]) != set(["Melpomene Murray", "Randy Schwartz"]):
@@ -123,14 +123,40 @@ def testReportMatches():
     reportMatch(tournament, id1, id2)
     reportMatch(tournament, id3, id4)
     standings = playerStandings(tournament)
-    for (i, n, w, m) in standings:
+    for (i, n, s, m) in standings:
         if m != 1:
             raise ValueError("Each player should have one match recorded.")
-        if i in (id1, id3) and w != 1:
-            raise ValueError("Each match winner should have one win recorded.")
-        elif i in (id2, id4) and w != 0:
-            raise ValueError("Each match loser should have zero wins recorded.")
+        if i in (id1, id3) and s != 2:
+            raise ValueError("Each match winner should have one win (Score of 2).")
+        elif i in (id2, id4) and s != 0:
+            raise ValueError("Each match loser should have zero wins (Score of 0).")
     print "7. After a match, players have updated standings."
+
+
+def testReportTieMatches():
+    deleteMatches()
+    deletePlayers()
+    deleteTournaments()
+    tournament = registerTournament("Fun League")
+    registerPlayer("Bruno Walton", tournament)
+    registerPlayer("Boots O'Neal", tournament)
+    registerPlayer("Cathy Burton", tournament)
+    registerPlayer("Diane Grant", tournament)
+    standings = playerStandings(tournament)
+    [id1, id2, id3, id4] = [row[0] for row in standings]
+    reportMatch(tournament, id1, id2)
+    reportMatch(tournament, id3, id4, True)
+    standings = playerStandings(tournament)
+    for (i, n, s, m) in standings:
+        if m != 1:
+            raise ValueError("Each player should have one match recorded.")
+        if i == id1 and s != 2:
+            raise ValueError("Player one should have one win (Score of 2).")
+        elif i == id2 and s != 0:
+            raise ValueError("Player two should have zero wins (Score of 0).")
+        if i in (id3, id4) and s != 1:
+            raise ValueError("Each draw match player should a score of 1.")
+    print "7a. After a match, and a tie match, players have updated standings."
 
 
 def testPairings():
@@ -168,5 +194,6 @@ if __name__ == '__main__':
     testTournamentRegisterCountDelete()
     testStandingsBeforeMatches()
     testReportMatches()
+    testReportTieMatches()
     testPairings()
     print "Success!  All tests pass!"

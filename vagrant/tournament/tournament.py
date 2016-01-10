@@ -177,7 +177,7 @@ def registerTournament(name):
 
 
 def playerStandings(t_id):
-    """Returns a list of the players and their win records, sorted by wins, in
+    """Returns a list of the players and their total score, sorted by score, in
     a specific tournament.
 
     The first entry in the list should be the player in first place, or a player
@@ -187,10 +187,10 @@ def playerStandings(t_id):
         t_id: tournament id (unique).
 
     Returns:
-      A list of tuples, each of which contains (id, name, wins, matches):
+      A list of tuples, each of which contains (id, name, score, matches):
         id: the player's unique id (assigned by the database)
         name: the player's full name (as registered)
-        wins: the number of matches the player has won
+        score: total points for wins and draws accumulated (2 for wins, 1 for draws)
         matches: the number of matches the player has played
     """
     db = connect()
@@ -208,28 +208,33 @@ def playerStandings(t_id):
     return players
 
 
-def reportMatch(t_id, winner, loser):
+def reportMatch(t_id, winner, loser, draw=False):
     """Records the outcome of a single match between two players. Updates Player Standings.
 
     Args:
         t_id: the tournament id
         winner: the id number of the player who won
         loser: the id number of the player who lost
+        draw: boolean of if match was a tie. Changes points allotted in match
     """
 
     db = connect()
     c = db.cursor()
 
-    query_match = "INSERT INTO matches (tournament, winner, loser) VALUES (%s, %s, %s)"
-    c.execute(query_match, (t_id, winner, loser,))
+    query_match = "INSERT INTO matches (tournament, winner, loser, draw) VALUES (%s, %s, %s, %s)"
+    c.execute(query_match, (t_id, winner, loser, draw))
 
-    query_winner = """UPDATE player_standings SET score = score + 1, matches = matches + 1
-                    WHERE tournament = %s AND player = %s"""
-    c.execute(query_winner, (t_id, winner,))
+    if(draw is False):
+        win_score = 2
+        lose_score = 0
+    else:
+        win_score = lose_score = 1
 
-    query_loser = """UPDATE player_standings SET matches = matches + 1
+    query_player = """UPDATE player_standings SET score = score + %s, matches = matches + 1
                     WHERE tournament = %s AND player = %s"""
-    c.execute(query_loser, (t_id, loser,))
+
+    c.execute(query_player, (win_score, t_id, winner))
+    c.execute(query_player, (lose_score, t_id, loser))
 
     db.commit()
     db.close()

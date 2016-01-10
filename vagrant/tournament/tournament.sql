@@ -21,4 +21,4 @@ CREATE TABLE matches (  id SERIAL PRIMARY KEY,
 CREATE TABLE player_standings ( tournament INT,
                                 player INT,
                                 score INT,
-                                matches INT);
+                                matches INT );
