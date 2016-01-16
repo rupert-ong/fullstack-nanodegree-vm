@@ -76,11 +76,13 @@ def testTournamentRegisterCountDelete():
     c = countTournamentPlayers(tournament_1)
     if c != 3:
         raise ValueError(
-            "After registering three players, countTournamentPlayers should be 3.")
+            "After registering three players, countTournamentPlayers "
+            "should be 3.")
     deleteTournamentPlayerStandings(tournament_1)
     c = countTournamentPlayers(tournament_1)
     if c != 0:
-        raise ValueError("After deleting, countTournmanentPlayers should return zero.")
+        raise ValueError("After deleting, countTournamentPlayers "
+                         "should return zero.")
     print "5a. Tournament Players can be registered and deleted."
 
 
@@ -98,8 +100,10 @@ def testStandingsBeforeMatches():
     elif len(standings) > 2:
         raise ValueError("Only registered players should appear in standings.")
     if len(standings[0]) != 5:
-        raise ValueError("Each playerStandings row should have five columns (including omw).")
-    [(id1, name1, score1, matches1, omw1), (id2, name2, score2, matches2, omw2)] = standings
+        raise ValueError("Each playerStandings row should have five columns "
+                         "(including omw).")
+    [(id1, name1, score1, matches1, omw1),
+        (id2, name2, score2, matches2, omw2)] = standings
     if matches1 != 0 or matches2 != 0 or score1 != 0 or score2 != 0:
         raise ValueError(
             "Newly registered players should have no matches or wins.")
@@ -159,6 +163,49 @@ def testReportTieMatches():
     print "7a. After a match, and a tie match, players have updated standings."
 
 
+def testPlayerStandingsOmw():
+    deleteMatches()
+    deletePlayers()
+    deleteTournaments()
+    tournament = registerTournament("Fun League")
+    registerPlayer("Bruno Walton", tournament)
+    registerPlayer("Boots O'Neal", tournament)
+    registerPlayer("Cathy Burton", tournament)
+    registerPlayer("Diane Grant", tournament)
+    registerPlayer("Bob Hope", tournament)
+    registerPlayer("Will Ferrell", tournament)
+    registerPlayer("Kevin Hart", tournament)
+    registerPlayer("Conan O'Brien", tournament)
+    registerPlayer("Ice Cube", tournament)
+    standings = playerStandings(tournament)
+    [id1, id2, id3, id4, id5, id6, id7, id8, id9] = [row[0] for row in standings]
+
+    # Bruno Has 4 wins against easy players (2nd place)
+    reportMatch(tournament, id1, id5)
+    reportMatch(tournament, id1, id6)
+    reportMatch(tournament, id1, id7)
+    reportMatch(tournament, id1, id8)
+
+    # Cathy has 1 win, making her a medium player (3rd place)
+    reportMatch(tournament, id3, id9)
+
+    # Boots 4 wins, 3 against easy, 1 against a medium player (1st place)
+    reportMatch(tournament, id2, id5)
+    reportMatch(tournament, id2, id6)
+    reportMatch(tournament, id2, id7)
+    reportMatch(tournament, id2, id3)
+
+    standings = playerStandings(tournament)
+    [
+        (id1, name1, score1, matches1, omw1),
+        (id2, name2, score2, matches2, omw2),
+        (id3, name3, score3, matches3, omw3)] = standings[0:3]
+
+    if set([name1, name2, name3]) != set(["Boots O'Neal", "Bruno Walton", "Cathy Burton"]):
+        raise ValueError("Player with better OMW not listed in order")
+    print "7b. Players with same scores listed in order by opponent match wins."
+
+
 def testPairings():
     deleteMatches()
     deletePlayers()
@@ -195,5 +242,6 @@ if __name__ == '__main__':
     testStandingsBeforeMatches()
     testReportMatches()
     testReportTieMatches()
+    testPlayerStandingsOmw()
     testPairings()
     print "Success!  All tests pass!"
