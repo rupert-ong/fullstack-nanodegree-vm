@@ -13,6 +13,7 @@ def testDeleteMatches():
 def testDelete():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     print "2. Player records can be deleted. Tournaments can be deleted."
 
@@ -20,6 +21,7 @@ def testDelete():
 def testCount():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     c = countPlayers()
     if c == '0':
@@ -33,6 +35,7 @@ def testCount():
 def testRegister():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     tournament = registerTournament("Fun League")
     registerPlayer("Chandra Nalaar", tournament)
@@ -46,6 +49,7 @@ def testRegister():
 def testRegisterCountDelete():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     tournament = registerTournament("Fun League")
     registerPlayer("Markov Chaney", tournament)
@@ -66,6 +70,7 @@ def testRegisterCountDelete():
 def testTournamentRegisterCountDelete():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     tournament_1 = registerTournament("Fun League")
     tournament_2 = registerTournament("Pro League")
@@ -89,6 +94,7 @@ def testTournamentRegisterCountDelete():
 def testStandingsBeforeMatches():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     tournament = registerTournament("Fun League")
     registerPlayer("Melpomene Murray", tournament)
@@ -116,6 +122,7 @@ def testStandingsBeforeMatches():
 def testReportMatches():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     tournament = registerTournament("Fun League")
     registerPlayer("Bruno Walton", tournament)
@@ -140,6 +147,7 @@ def testReportMatches():
 def testReportTieMatches():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     tournament = registerTournament("Fun League")
     registerPlayer("Bruno Walton", tournament)
@@ -166,6 +174,7 @@ def testReportTieMatches():
 def testPlayerStandingsOmw():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     tournament = registerTournament("Fun League")
     registerPlayer("Bruno Walton", tournament)
@@ -209,6 +218,7 @@ def testPlayerStandingsOmw():
 def testPairings():
     deleteMatches()
     deletePlayers()
+    deletePlayerStandings()
     deleteTournaments()
     tournament = registerTournament("Fun League")
     registerPlayer("Twilight Sparkle", tournament)

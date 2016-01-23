@@ -76,6 +76,17 @@ def deleteTournamentMatches(t_id):
     db.close()
 
 
+def deletePlayerStandings():
+    """Remove all player standings"""
+    db = connect()
+    c = db.cursor()
+
+    query = "DELETE FROM player_standings"
+    c.execute(query)
+    db.commit()
+    db.close()
+
+
 def deleteTournamentPlayerStandings(t_id):
     """Remove all the specific tournament player standings records from the
     database.
