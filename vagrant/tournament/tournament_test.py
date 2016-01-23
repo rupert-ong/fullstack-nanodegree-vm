@@ -273,6 +273,32 @@ def testBye():
     print "8a. Only an even number of players are allowed in pairings."
 
 
+def testPairingsAndBye():
+    deleteAll()
+    tournament = registerTournament("Fun League")
+    registerPlayer("Twilight Sparkle", tournament)
+    registerPlayer("Fluttershy", tournament)
+    registerPlayer("Applejack", tournament)
+    registerPlayer("Pinkie Pie", tournament)
+    registerPlayer("Brain", tournament)
+    standings = playerStandings(tournament)
+    [id1, id2, id3, id4, id5] = [row[0] for row in standings]
+
+    reportMatch(tournament, id1, id2)
+    reportMatch(tournament, id3, id4)
+    pairings = swissPairings(tournament)
+    if len(pairings) != 2:
+        raise ValueError(
+            "For five players, swissPairings should return two pairs.")
+    [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4)] = pairings
+    correct_pairs = set([frozenset([id3, id2]), frozenset([id4, id5])])
+    actual_pairs = set([frozenset([pid1, pid2]), frozenset([pid3, pid4])])
+    if correct_pairs != actual_pairs:
+        raise ValueError(
+            "After one match, byed player should not be paired.")
+    print "8b. After one match, byed players excluded. Pairings are good."
+
+
 if __name__ == '__main__':
     testDeleteMatches()
     testDelete()
@@ -286,4 +312,5 @@ if __name__ == '__main__':
     testPlayerStandingsOmw()
     testPairings()
     testBye()
+    testPairingsAndBye()
     print "Success!  All tests pass!"
