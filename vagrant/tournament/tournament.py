@@ -143,9 +143,9 @@ def registerPlayer(name, t_id):
     c.execute(query_player, (name,))
 
     player_id = c.fetchone()[0]
-    query_player_standing = """INSERT INTO player_standings (tournament,
-                               player, score, matches) VALUES(%s, %s, %s, %s)"""
-    c.execute(query_player_standing, (t_id, player_id, 0, 0,))
+    query_player_s = """INSERT INTO player_standings (tournament,
+                        player, score, matches, bye) VALUES(%s, %s, %s, %s, %s)"""
+    c.execute(query_player_s, (t_id, player_id, 0, 0, 0))
 
     db.commit()
     db.close()
@@ -252,6 +252,51 @@ def reportMatch(t_id, winner, loser, draw=False):
     db.close()
 
 
+def checkForEvenPlayers(players, t_id):
+    """Returns an even number of players, assigning a bye to one of the players,
+    if there was an odd number of players to begin with
+
+    Args:
+        players: a list of tuples containing (id, name) of the player
+        t_id: tournament id
+
+    Returns:
+        A even list of tuples containing (id, name) of the player, excluding
+        the player assigned the bye if the initial list length was an odd
+    """
+
+    if len(players) % 2 != 0:
+        db = connect()
+        c = db.cursor()
+
+        # Get player standings and select 1st place player without a bye (id)
+        query = """SELECT player FROM player_standings WHERE bye = 0
+                   ORDER BY score DESC, omw DESC, matches DESC LIMIT 1"""
+        c.execute(query)
+        id = c.fetchone()[0]
+
+        # Update player with (id) to have a bye
+        query_bye = "UPDATE player_standings SET bye = 1 WHERE id = %s"
+        c.execute(query_bye, (id,))
+
+        # Get List of players excluding player with (id)
+        query_players = """SELECT ps.player, p.name
+                           FROM player_standings AS ps, players AS p
+                           WHERE ps.player != %s AND ps.player = p.id
+                           AND ps.tournament = %s
+                           ORDER BY score DESC, matches DESC"""
+        c.execute(query_players, (id, t_id))
+        players_modified = c.fetchall()
+
+        db.commit()
+        db.close()
+
+        # Return modified players list
+        return players_modified
+    else:
+        return players
+
+
 def swissPairings(t_id):
     """Returns a list of pairs of players for the next round of a match in a
     specific tournament.
@@ -281,6 +326,8 @@ def swissPairings(t_id):
                ORDER BY score DESC, matches DESC"""
     c.execute(query, (t_id,))
     players = c.fetchall()
+
+    players = checkForEvenPlayers(players, t_id)
 
     pairings = []
     for i in range(0, len(players), 2):
