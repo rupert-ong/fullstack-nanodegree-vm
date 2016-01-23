@@ -46,7 +46,7 @@ fullstack-nanodegree-vm/
 
 1. If there is an odd number of players, assign one player a “bye” (skipped round). A bye counts as a free win. A player should not receive more than one bye in a tournament.
 2. When two players have the same number of wins, rank them according to OMW (Opponent Match Wins), the total number of wins by players they have played against.
-3. Support games where a draw (tied game) is possible..
+3. Support games where a draw (tied game) is possible.
 4. Support more than one tournament in the database, so matches do not have to be deleted between tournaments.
 
 ## Contributors
