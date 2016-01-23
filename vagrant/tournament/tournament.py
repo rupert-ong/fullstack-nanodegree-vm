@@ -144,7 +144,7 @@ def registerPlayer(name, t_id):
 
     player_id = c.fetchone()[0]
     query_player_standing = """INSERT INTO player_standings (tournament,
-        player, score, matches) VALUES(%s, %s, %s, %s)"""
+                               player, score, matches) VALUES(%s, %s, %s, %s)"""
     c.execute(query_player_standing, (t_id, player_id, 0, 0,))
 
     db.commit()
@@ -230,15 +230,15 @@ def reportMatch(t_id, winner, loser, draw=False):
     c = db.cursor()
 
     query_match = """INSERT INTO matches (tournament, winner, loser, draw)
-                    VALUES (%s, %s, %s, %s)"""
+                     VALUES (%s, %s, %s, %s)"""
     c.execute(query_match, (t_id, winner, loser, draw))
 
     if(draw is False):
         query_winner = """UPDATE player_standings SET score = score + 2,
-                        matches = matches + 1
-                        WHERE tournament = %s AND player = %s"""
+                          matches = matches + 1
+                          WHERE tournament = %s AND player = %s"""
         query_loser = """UPDATE player_standings SET matches = matches + 1
-                        WHERE tournament = %s AND player = %s"""
+                         WHERE tournament = %s AND player = %s"""
         c.execute(query_winner, (t_id, winner))
         c.execute(query_loser, (t_id, loser))
     else:
@@ -275,15 +275,19 @@ def swissPairings(t_id):
     db = connect()
     c = db.cursor()
 
-    query = """SELECT ps.player, p.name FROM player_standings AS ps, players AS p
-            WHERE ps.player = p.id AND ps.tournament = %s
-            ORDER BY score DESC, matches DESC"""
+    query = """SELECT ps.player, p.name
+               FROM player_standings AS ps, players AS p
+               WHERE ps.player = p.id AND ps.tournament = %s
+               ORDER BY score DESC, matches DESC"""
     c.execute(query, (t_id,))
     players = c.fetchall()
 
     pairings = []
     for i in range(0, len(players), 2):
-        pairings.append((players[i][0], players[i][1], players[i+1][0], players[i+1][1],))
+        # Append a tuple (player1 id, player1 name, player2 id, player2 name)
+        pairings.append(
+            (players[i][0], players[i][1], players[i+1][0], players[i+1][1],)
+        )
 
     db.close()
 
