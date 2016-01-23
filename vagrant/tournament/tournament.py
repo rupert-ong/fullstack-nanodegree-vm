@@ -204,6 +204,7 @@ def playerStandings(t_id):
         score: total points for wins and draws (2 for wins, 1 for draws)
         matches: the number of matches the player has played
         omw: total points of opponents a player has faced
+        bye: the number of skips rounds player has in case of uneven players
     """
     db = connect()
     c = db.cursor()
@@ -215,7 +216,7 @@ def playerStandings(t_id):
                         WHERE winner = ps.player AND tournament = %s)
                     OR ps2.player IN (SELECT winner FROM matches
                         WHERE loser = ps.player AND tournament = %s)
-                ) AS omw
+                ) AS omw, ps.bye
                 FROM player_standings AS ps, players AS p
                 WHERE ps.player = p.id AND ps.tournament = %s
                 ORDER BY ps.score DESC, omw DESC, ps.matches DESC"""
@@ -282,12 +283,12 @@ def checkForEvenPlayers(players, t_id):
 
         # Get player standings and select 1st place player without a bye (id)
         query = """SELECT player FROM player_standings WHERE bye = 0
-                   ORDER BY score DESC, omw DESC, matches DESC LIMIT 1"""
+                   ORDER BY score DESC, matches DESC LIMIT 1"""
         c.execute(query)
         id = c.fetchone()[0]
 
         # Update player with (id) to have a bye
-        query_bye = "UPDATE player_standings SET bye = 1 WHERE id = %s"
+        query_bye = "UPDATE player_standings SET bye=1 WHERE player = %s"
         c.execute(query_bye, (id,))
 
         # Get List of players excluding player with (id)
@@ -302,7 +303,7 @@ def checkForEvenPlayers(players, t_id):
         db.commit()
         db.close()
 
-        # Return modified players list
+        # Return modified players list of tuples (id, name)
         return players_modified
     else:
         return players

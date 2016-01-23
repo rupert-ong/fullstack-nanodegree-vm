@@ -5,24 +5,25 @@
 from tournament import *
 
 
+def deleteAll():
+    deleteMatches()
+    deletePlayers()
+    deletePlayerStandings()
+    deleteTournaments()
+
+
 def testDeleteMatches():
     deleteMatches()
     print "1. Old matches can be deleted."
 
 
 def testDelete():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     print "2. Player records can be deleted. Tournaments can be deleted."
 
 
 def testCount():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     c = countPlayers()
     if c == '0':
         raise TypeError(
@@ -33,10 +34,7 @@ def testCount():
 
 
 def testRegister():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     tournament = registerTournament("Fun League")
     registerPlayer("Chandra Nalaar", tournament)
     c = countPlayers()
@@ -47,10 +45,7 @@ def testRegister():
 
 
 def testRegisterCountDelete():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     tournament = registerTournament("Fun League")
     registerPlayer("Markov Chaney", tournament)
     registerPlayer("Joe Malik", tournament)
@@ -68,10 +63,7 @@ def testRegisterCountDelete():
 
 
 def testTournamentRegisterCountDelete():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     tournament_1 = registerTournament("Fun League")
     tournament_2 = registerTournament("Pro League")
     registerPlayer("Markov Chaney", tournament_1)
@@ -92,10 +84,7 @@ def testTournamentRegisterCountDelete():
 
 
 def testStandingsBeforeMatches():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     tournament = registerTournament("Fun League")
     registerPlayer("Melpomene Murray", tournament)
     registerPlayer("Randy Schwartz", tournament)
@@ -105,11 +94,11 @@ def testStandingsBeforeMatches():
                          "they have played any matches.")
     elif len(standings) > 2:
         raise ValueError("Only registered players should appear in standings.")
-    if len(standings[0]) != 5:
+    if len(standings[0]) != 6:
         raise ValueError("Each playerStandings row should have five columns "
-                         "(including omw).")
-    [(id1, name1, score1, matches1, omw1),
-        (id2, name2, score2, matches2, omw2)] = standings
+                         "(including omw and byes).")
+    [(id1, name1, score1, matches1, omw1, bye1),
+        (id2, name2, score2, matches2, omw2, bye2)] = standings
     if matches1 != 0 or matches2 != 0 or score1 != 0 or score2 != 0:
         raise ValueError(
             "Newly registered players should have no matches or wins.")
@@ -120,10 +109,7 @@ def testStandingsBeforeMatches():
 
 
 def testReportMatches():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     tournament = registerTournament("Fun League")
     registerPlayer("Bruno Walton", tournament)
     registerPlayer("Boots O'Neal", tournament)
@@ -134,21 +120,18 @@ def testReportMatches():
     reportMatch(tournament, id1, id2)
     reportMatch(tournament, id3, id4)
     standings = playerStandings(tournament)
-    for (i, n, s, m, o) in standings:
+    for (i, n, s, m, o, b) in standings:
         if m != 1:
             raise ValueError("Each player should have one match recorded.")
         if i in (id1, id3) and s != 2:
-            raise ValueError("Each match winner should have one win (Score of 2).")
+            raise ValueError("Each match winner should have one win (Score 2).")
         elif i in (id2, id4) and s != 0:
-            raise ValueError("Each match loser should have zero wins (Score of 0).")
+            raise ValueError("Each match loser should have zero wins (Score 0).")
     print "7. After a match, players have updated standings."
 
 
 def testReportTieMatches():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     tournament = registerTournament("Fun League")
     registerPlayer("Bruno Walton", tournament)
     registerPlayer("Boots O'Neal", tournament)
@@ -159,7 +142,7 @@ def testReportTieMatches():
     reportMatch(tournament, id1, id2)
     reportMatch(tournament, id3, id4, True)
     standings = playerStandings(tournament)
-    for (i, n, s, m, o) in standings:
+    for (i, n, s, m, o, b) in standings:
         if m != 1:
             raise ValueError("Each player should have one match recorded.")
         if i == id1 and s != 2:
@@ -172,10 +155,7 @@ def testReportTieMatches():
 
 
 def testPlayerStandingsOmw():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     tournament = registerTournament("Fun League")
     registerPlayer("Bruno Walton", tournament)
     registerPlayer("Boots O'Neal", tournament)
@@ -206,20 +186,20 @@ def testPlayerStandingsOmw():
 
     standings = playerStandings(tournament)
     [
-        (id1, name1, score1, matches1, omw1),
-        (id2, name2, score2, matches2, omw2),
-        (id3, name3, score3, matches3, omw3)] = standings[0:3]
+        (id1, name1, score1, matches1, omw1, bye1),
+        (id2, name2, score2, matches2, omw2, bye2),
+        (id3, name3, score3, matches3, omw3, bye3)] = standings[0:3]
 
-    if set([name1, name2, name3]) != set(["Boots O'Neal", "Bruno Walton", "Cathy Burton"]):
+    if(
+        set([name1, name2, name3]) !=
+        set(["Boots O'Neal", "Bruno Walton", "Cathy Burton"])
+    ):
         raise ValueError("Player with better OMW not listed in order")
     print "7b. Players with same scores listed in order by opponent match wins."
 
 
 def testPairings():
-    deleteMatches()
-    deletePlayers()
-    deletePlayerStandings()
-    deleteTournaments()
+    deleteAll()
     tournament = registerTournament("Fun League")
     registerPlayer("Twilight Sparkle", tournament)
     registerPlayer("Fluttershy", tournament)
@@ -242,6 +222,57 @@ def testPairings():
     print "8. After one match, players with one win are paired."
 
 
+def testBye():
+    deleteAll()
+    tournament = registerTournament("Fun League")
+    registerPlayer("Twilight Sparkle", tournament)
+    registerPlayer("Fluttershy", tournament)
+    registerPlayer("Applejack", tournament)
+
+    standings = playerStandings(tournament)
+    [id1, id2, id3] = [row[0] for row in standings]
+
+    # Fluttershy (now 1st, bye candidate) has a win against AppleJack (now 2nd)
+    reportMatch(tournament, id2, id3)
+
+    players = checkForEvenPlayers(standings, tournament)
+    [p_name1, p_name2] = [row[1] for row in players]
+
+    standings = playerStandings(tournament)
+
+    # 1st round: Check bye tallies
+    for (i, n, s, m, o, b) in standings:
+        if i == id2 and b != 1:
+            raise ValueError("Player two bye should be 1.")
+        if i in (id1, id3) and b != 0:
+            raise ValueError("Player one and three should have 0 byes")
+
+    if len(players) != 2:
+        raise ValueError("Should have even players. Expecting 2, not 3.")
+    elif "Fluttershy" in set([p_name1, p_name2]):
+        raise ValueError("Player assigned bye should not in player list.")
+
+    # 2nd round to test if previous bye player not byed again
+    # (Should be Applejack this time as byed player)
+    players = checkForEvenPlayers(standings, tournament)
+    [p_name1, p_name2] = [row[1] for row in players]
+
+    standings = playerStandings(tournament)
+
+    # 2st round: Check bye tallies
+    for (i, n, s, m, o, b) in standings:
+        if i == id1 and b != 0:
+            raise ValueError("Player one bye should be 0.")
+        if i in (id2, id3) and b != 1:
+            raise ValueError("Player two and three should have 1 byes")
+
+    if len(players) != 2:
+        raise ValueError("Should have even players. Expecting 2, not 3.")
+    elif "Applejack" in set([p_name1, p_name2]):
+        raise ValueError("Player assigned bye should not in player list.")
+    print "8a. Only an even number of players are allowed in pairings."
+
+
 if __name__ == '__main__':
     testDeleteMatches()
     testDelete()
@@ -254,4 +285,5 @@ if __name__ == '__main__':
     testReportTieMatches()
     testPlayerStandingsOmw()
     testPairings()
+    testBye()
     print "Success!  All tests pass!"
