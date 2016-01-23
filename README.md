@@ -31,12 +31,12 @@ Within the downloaded files, this is the relevant structure:
 ```
 fullstack-nanodegree-vm/
 └── vagrant/
-	└── Vagrantfile
-	└── pg_config.sh
-	└── tournament/
-   		├── tournament.py
-   		├── tournament_test.py
-   		└── tournament.sql
+    ├── Vagrantfile
+    └── pg_config.sh
+    └── tournament/
+        ├── tournament.py
+        ├── tournament_test.py
+        └── tournament.sql
 ```
 
 ## Contributors
