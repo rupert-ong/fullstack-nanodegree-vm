@@ -31,7 +31,8 @@ CREATE TABLE matches (  id SERIAL PRIMARY KEY,
 -- player winner table (subquery) winners and add their total wins.
 CREATE VIEW player_omws AS
     SELECT m.winner AS player, COALESCE(SUM(pw.wins), 0) AS omw
-    FROM matches as m LEFT JOIN 
+    FROM matches as m LEFT JOIN
+        -- Player Wins Table (Subquery)
         (SELECT winner AS player, COUNT(*) as wins
             FROM matches
             GROUP BY player) as pw
