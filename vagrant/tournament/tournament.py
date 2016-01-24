@@ -204,8 +204,7 @@ def playerStandings(t_id):
     db, c = connect()
 
     query = """SELECT player, name, wins, ties, matches, omw, byes
-               FROM player_standings WHERE tournament = %s
-               ORDER BY wins DESC, ties DESC, omw DESC"""
+               FROM player_standings WHERE tournament = %s"""
     c.execute(query, (t_id,))
     players = c.fetchall()
     db.close()
@@ -251,8 +250,7 @@ def checkForEvenPlayers(players, t_id):
         db, c = connect()
 
         # Get player standings and select 1st place player without a bye (id)
-        query = """SELECT player FROM player_standings WHERE byes = 0
-                   ORDER BY wins DESC, matches DESC LIMIT 1"""
+        query = """SELECT player FROM player_standings WHERE byes = 0 LIMIT 1"""
         c.execute(query)
         id = c.fetchone()[0]
 
@@ -264,8 +262,7 @@ def checkForEvenPlayers(players, t_id):
         query_players = """SELECT ps.player, p.name
                            FROM player_standings AS ps, players AS p
                            WHERE ps.player != %s AND ps.player = p.id
-                           AND ps.tournament = %s
-                           ORDER BY wins DESC, matches DESC"""
+                           AND ps.tournament = %s"""
         c.execute(query_players, (id, t_id))
         players_modified = c.fetchall()
 

@@ -45,4 +45,5 @@ CREATE VIEW player_standings AS
         (SELECT byes FROM players WHERE id = p.id) as byes        
     FROM players AS p LEFT JOIN matches AS m
     ON (p.id = m.winner OR p.id = m.loser)
-    GROUP BY p.id;
+    GROUP BY p.id
+    ORDER BY wins DESC, ties DESC, omw DESC, matches DESC;
