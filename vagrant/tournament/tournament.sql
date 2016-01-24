@@ -23,13 +23,27 @@ CREATE TABLE matches (  id SERIAL PRIMARY KEY,
                         loser INTEGER REFERENCES players(id),
                         draw BOOLEAN );
 
--- Create a View for Player Standing
+-- View for OMW
+--
+-- Columns: player id from matches, sum of wins
+--
+-- Tips: Left Join matches and player wins table. Match matches table losers to
+-- player winner table (subquery) winners and add their total wins.
+CREATE VIEW player_omws AS
+    SELECT m.winner AS player, COALESCE(SUM(pw.wins), 0) AS omw
+    FROM matches as m LEFT JOIN 
+        (SELECT winner AS player, COUNT(*) as wins
+            FROM matches
+            GROUP BY player) as pw
+    ON m.loser = pw.player
+    GROUP BY m.winner;
+
+-- View for Player Standings
 --
 -- Columns: tournament, player(id), name, wins, ties, omw, matches
 -- Order By: tournament, wins, ties, omw
 --
--- Tips: Left Join players table to matches
-
+-- Tips: Left Join players table to matches (Group by player id)
 CREATE VIEW player_standings AS
     SELECT p.tournament, p.id AS player, p.name,
         (SELECT COUNT(*) 
@@ -41,7 +55,7 @@ CREATE VIEW player_standings AS
         (SELECT COUNT(*) 
             FROM matches
             WHERE winner = p.id OR loser = p.id) AS matches,
-        0 AS omw,
+        (SELECT omw FROM player_omws WHERE player = p.id) as omw,
         (SELECT byes FROM players WHERE id = p.id) as byes        
     FROM players AS p LEFT JOIN matches AS m
     ON (p.id = m.winner OR p.id = m.loser)
