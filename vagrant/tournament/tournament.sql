@@ -16,9 +16,9 @@ CREATE TABLE tournaments (  id SERIAL PRIMARY KEY,
                             name TEXT );
 
 CREATE TABLE matches (  id SERIAL PRIMARY KEY,
-                        tournament INTEGER,
-                        winner INTEGER,
-                        loser INTEGER,
+                        tournament INTEGER REFERENCES tournaments(id),
+                        winner INTEGER REFERENCES players(id),
+                        loser INTEGER REFERENCES players(id),
                         draw BOOLEAN );
 
 CREATE TABLE player_standings ( tournament INTEGER,
