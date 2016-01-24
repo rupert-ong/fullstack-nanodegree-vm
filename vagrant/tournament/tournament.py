@@ -6,15 +6,18 @@
 import psycopg2
 
 
-def connect():
-    """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
+def connect(database_name="tournament"):
+    try:
+        db = psycopg2.connect("dbname={}".format(database_name))
+        cursor = db.cursor()
+        return db, cursor
+    except:
+        print("Error: Could not connect to database")
 
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = "DELETE FROM matches"
     c.execute(query)
@@ -24,8 +27,7 @@ def deleteMatches():
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = "DELETE FROM players"
     c.execute(query)
@@ -35,8 +37,7 @@ def deletePlayers():
 
 def deleteTournaments():
     """Remove all the tournament records from the database."""
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = "DELETE FROM tournaments"
     c.execute(query)
@@ -51,8 +52,7 @@ def deleteTournament(t_id):
         t_id: Tournament ID (unique)
 
     """
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = "DELETE FROM tournaments WHERE tournament = %s"
     c.execute(query, (t_id,))
@@ -67,8 +67,7 @@ def deleteTournamentMatches(t_id):
         t_id: Tournament ID (unique)
 
     """
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = "DELETE FROM matches WHERE tournament = %s"
     c.execute(query, (t_id,))
@@ -78,8 +77,7 @@ def deleteTournamentMatches(t_id):
 
 def deletePlayerStandings():
     """Remove all player standings"""
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = "DELETE FROM player_standings"
     c.execute(query)
@@ -95,8 +93,7 @@ def deleteTournamentPlayerStandings(t_id):
         t_id: Tournament ID (unique)
 
     """
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = "DELETE FROM player_standings WHERE tournament = %s"
     c.execute(query, (t_id,))
@@ -106,8 +103,7 @@ def deleteTournamentPlayerStandings(t_id):
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = "SELECT COUNT(*) AS num FROM players"
     c.execute(query)
@@ -125,8 +121,7 @@ def countTournamentPlayers(t_id):
             t_id: tournament id (unique)
 
     """
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = """SELECT COUNT(*) AS num FROM player_standings
                WHERE tournament = %s"""
@@ -147,8 +142,7 @@ def registerPlayer(name, t_id):
         name: the player's full name (need not be unique).
         t_id: tournament id (unique).
     """
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query_player = "INSERT INTO players (name) VALUES(%s) RETURNING id"
     c.execute(query_player, (name,))
@@ -174,8 +168,7 @@ def registerTournament(name):
     Returns:
         id: tournament id (unique) for use in other functions
     """
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = "INSERT INTO tournaments (name) VALUES(%s) RETURNING id"
     c.execute(query, (name,))
@@ -206,8 +199,7 @@ def playerStandings(t_id):
         omw: total points of opponents a player has faced
         bye: the number of skips rounds player has in case of uneven players
     """
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = """SELECT ps.player, p.name, ps.score, ps.matches,
                 (SELECT COALESCE(SUM(ps2.score), 0)
@@ -238,8 +230,7 @@ def reportMatch(t_id, winner, loser, draw=False):
         draw: boolean of if match was a tie. Changes points allotted in match
     """
 
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query_match = """INSERT INTO matches (tournament, winner, loser, draw)
                      VALUES (%s, %s, %s, %s)"""
@@ -278,8 +269,7 @@ def checkForEvenPlayers(players, t_id):
     """
 
     if len(players) % 2 != 0:
-        db = connect()
-        c = db.cursor()
+        db, c = connect()
 
         # Get player standings and select 1st place player without a bye (id)
         query = """SELECT player FROM player_standings WHERE bye = 0
@@ -329,8 +319,7 @@ def swissPairings(t_id):
             name2: the second player's name
     """
 
-    db = connect()
-    c = db.cursor()
+    db, c = connect()
 
     query = """SELECT ps.player, p.name
                FROM player_standings AS ps, players AS p
