@@ -22,8 +22,7 @@ Here's what you need to do to view this project:
 2. Within Terminal (Mac), navigate to the vagrant folder and launch the Vagrant VM by running the command `vagrant up`.
 3. SSH into the running Vagrant machine `vagrant ssh`. 
 4. Execute `cd /vagrant/tournament` to change directory.
-5. Execute `psql` and then create a database `CREATE DATABASE tournament;` and `\connect tournament` to connect to it.
-6. Execute `\i tournament.sql` to import the database. `\quit` to exit PostgreSQL.
+5. Execute `psql` and then execute `\i tournament.sql` to import the database. `\quit` to exit PostgreSQL.
 6. Execute `python tournament_test.py` to run the test suite.
 
 
