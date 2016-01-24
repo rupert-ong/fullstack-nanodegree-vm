@@ -9,11 +9,12 @@ DROP DATABASE IF EXISTS tournament;
 CREATE DATABASE tournament;
 \c tournament;
 
-CREATE TABLE players ( id SERIAL PRIMARY KEY,
-                       name TEXT );
-
 CREATE TABLE tournaments (  id SERIAL PRIMARY KEY,
                             name TEXT );
+
+CREATE TABLE players ( id SERIAL PRIMARY KEY,
+                       name TEXT,
+                       tournament INTEGER REFERENCES tournaments(id) );
 
 CREATE TABLE matches (  id SERIAL PRIMARY KEY,
                         tournament INTEGER REFERENCES tournaments(id),
@@ -21,8 +22,31 @@ CREATE TABLE matches (  id SERIAL PRIMARY KEY,
                         loser INTEGER REFERENCES players(id),
                         draw BOOLEAN );
 
-CREATE TABLE player_standings ( tournament INTEGER,
+-- Create a View for Player Standing
+--
+-- Columns: tournament, player(id), name, wins, ties, omw, matches
+-- Order By: tournament, wins, ties, omw
+--
+-- Tips: Left Join players table to matches
+CREATE VIEW player_standings AS
+    SELECT p.tournament, p.id AS player, p.name,
+        (SELECT COUNT(*) 
+            FROM matches
+            WHERE winner = p.id AND draw = 'f') AS wins,
+        (SELECT COUNT(*) 
+            FROM matches
+            WHERE (winner = p.id OR loser = p.id) AND draw = 't') AS ties,
+        (SELECT COUNT(*) 
+            FROM matches
+            WHERE winner = p.id OR loser = p.id) AS matches,
+        0 AS omw,
+        0 as byes        
+    FROM players AS p LEFT JOIN matches AS m
+    ON (p.id = m.winner OR p.id = m.loser)
+    GROUP BY p.id;
+
+/*CREATE TABLE player_standings ( tournament INTEGER,
                                 player INTEGER,
                                 score INTEGER,
                                 matches INTEGER,
-                                bye INTEGER );
+                                bye INTEGER );*/

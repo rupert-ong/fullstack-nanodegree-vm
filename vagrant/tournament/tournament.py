@@ -35,6 +35,21 @@ def deletePlayers():
     db.close()
 
 
+def deleteTournamentPlayers(t_id):
+    """Remove all the player records from the database.
+
+    Args:
+        t_id: Tournament ID (unique)
+
+    """
+    db, c = connect()
+
+    query = "DELETE FROM players WHERE tournament = %s"
+    c.execute(query, (t_id,))
+    db.commit()
+    db.close()
+
+
 def deleteTournaments():
     """Remove all the tournament records from the database."""
     db, c = connect()
@@ -70,32 +85,6 @@ def deleteTournamentMatches(t_id):
     db, c = connect()
 
     query = "DELETE FROM matches WHERE tournament = %s"
-    c.execute(query, (t_id,))
-    db.commit()
-    db.close()
-
-
-def deletePlayerStandings():
-    """Remove all player standings"""
-    db, c = connect()
-
-    query = "DELETE FROM player_standings"
-    c.execute(query)
-    db.commit()
-    db.close()
-
-
-def deleteTournamentPlayerStandings(t_id):
-    """Remove all the specific tournament player standings records from the
-    database.
-
-    Args:
-        t_id: Tournament ID (unique)
-
-    """
-    db, c = connect()
-
-    query = "DELETE FROM player_standings WHERE tournament = %s"
     c.execute(query, (t_id,))
     db.commit()
     db.close()
@@ -144,16 +133,27 @@ def registerPlayer(name, t_id):
     """
     db, c = connect()
 
-    query_player = "INSERT INTO players (name) VALUES(%s) RETURNING id"
-    c.execute(query_player, (name,))
-
-    player_id = c.fetchone()[0]
-    query_player_s = """INSERT INTO player_standings (tournament,
-                        player, score, matches, bye) VALUES(%s, %s, %s, %s, %s)"""
-    c.execute(query_player_s, (t_id, player_id, 0, 0, 0))
+    query_player = "INSERT INTO players (name, tournament) VALUES(%s, %s)"
+    c.execute(query_player, (name, t_id))
 
     db.commit()
     db.close()
+
+
+def getTournamentPlayers(t_id):
+    """ Get all players from a tournament, sorted by id.
+
+    Args:
+        t_id: tournament id (unique)
+    """
+
+    db, c = connect()
+    query = "SELECT * FROM players WHERE tournament = %s"
+    c.execute(query, (t_id,))
+    players = c.fetchall()
+    db.close()
+
+    return players
 
 
 def registerTournament(name):
@@ -181,7 +181,7 @@ def registerTournament(name):
 
 
 def playerStandings(t_id):
-    """Returns a list of the players and their total score, sorted by score, in
+    """Returns a list of the players and their total wins, sorted by wins, in
     a specific tournament.
 
     The first entry in the list should be the player in first place, or a player
@@ -191,28 +191,22 @@ def playerStandings(t_id):
         t_id: tournament id (unique).
 
     Returns:
-      A list of tuples, each of which contains (id, name, score, matches, omw):
+      A list of tuples, each of which contains
+        (id, name, wins, ties, matches, omw, byes):
         id: the player's unique id (assigned by the database)
         name: the player's full name (as registered)
-        score: total points for wins and draws (2 for wins, 1 for draws)
+        wins: total wins
+        ties: total ties
         matches: the number of matches the player has played
         omw: total points of opponents a player has faced
-        bye: the number of skips rounds player has in case of uneven players
+        byes: the number of skips rounds player has in case of uneven players
     """
     db, c = connect()
 
-    query = """SELECT ps.player, p.name, ps.score, ps.matches,
-                (SELECT COALESCE(SUM(ps2.score), 0)
-                    FROM player_standings AS ps2
-                    WHERE ps2.player IN (SELECT loser FROM matches
-                        WHERE winner = ps.player AND tournament = %s)
-                    OR ps2.player IN (SELECT winner FROM matches
-                        WHERE loser = ps.player AND tournament = %s)
-                ) AS omw, ps.bye
-                FROM player_standings AS ps, players AS p
-                WHERE ps.player = p.id AND ps.tournament = %s
-                ORDER BY ps.score DESC, omw DESC, ps.matches DESC"""
-    c.execute(query, (t_id, t_id, t_id))
+    query = """SELECT player, name, wins, ties, matches, omw, byes
+               FROM player_standings WHERE tournament = %s
+               ORDER BY wins DESC, ties DESC, omw DESC"""
+    c.execute(query, (t_id,))
     players = c.fetchall()
     db.close()
 
@@ -235,21 +229,6 @@ def reportMatch(t_id, winner, loser, draw=False):
     query_match = """INSERT INTO matches (tournament, winner, loser, draw)
                      VALUES (%s, %s, %s, %s)"""
     c.execute(query_match, (t_id, winner, loser, draw))
-
-    if(draw is False):
-        query_winner = """UPDATE player_standings SET score = score + 2,
-                          matches = matches + 1
-                          WHERE tournament = %s AND player = %s"""
-        query_loser = """UPDATE player_standings SET matches = matches + 1
-                         WHERE tournament = %s AND player = %s"""
-        c.execute(query_winner, (t_id, winner))
-        c.execute(query_loser, (t_id, loser))
-    else:
-        query_draw = """UPDATE player_standings SET score = score + 1,
-                        matches = matches + 1
-                        WHERE tournament = %s AND player = %s"""
-        c.execute(query_draw, (t_id, winner))
-        c.execute(query_draw, (t_id, loser))
 
     db.commit()
     db.close()
