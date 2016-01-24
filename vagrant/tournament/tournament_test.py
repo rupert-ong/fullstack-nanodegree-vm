@@ -169,7 +169,9 @@ def testPlayerStandingsOmw():
     registerPlayer("Conan O'Brien", tournament)
     registerPlayer("Ice Cube", tournament)
     tournament_players = getTournamentPlayers(tournament)
-    [id1, id2, id3, id4, id5, id6, id7, id8, id9] = [row[0] for row in tournament_players]
+    [
+        id1, id2, id3, id4, id5, id6, id7, id8, id9
+    ] = [row[0] for row in tournament_players]
 
     # Bruno Has 4 wins against easy players (2nd place)
     reportMatch(tournament, id1, id5)
@@ -207,8 +209,8 @@ def testPairings():
     registerPlayer("Fluttershy", tournament)
     registerPlayer("Applejack", tournament)
     registerPlayer("Pinkie Pie", tournament)
-    standings = playerStandings(tournament)
-    [id1, id2, id3, id4] = [row[0] for row in standings]
+    tournament_players = getTournamentPlayers(tournament)
+    [id1, id2, id3, id4] = [row[0] for row in tournament_players]
     reportMatch(tournament, id1, id2)
     reportMatch(tournament, id3, id4)
     pairings = swissPairings(tournament)
@@ -231,11 +233,13 @@ def testBye():
     registerPlayer("Fluttershy", tournament)
     registerPlayer("Applejack", tournament)
 
-    standings = playerStandings(tournament)
-    [id1, id2, id3] = [row[0] for row in standings]
+    tournament_players = getTournamentPlayers(tournament)
+    [id1, id2, id3] = [row[0] for row in tournament_players]
 
     # Fluttershy (now 1st, bye candidate) has a win against AppleJack (now 2nd)
     reportMatch(tournament, id2, id3)
+
+    standings = playerStandings(tournament)
 
     players = checkForEvenPlayers(standings, tournament)
     [p_name1, p_name2] = [row[1] for row in players]
@@ -243,7 +247,7 @@ def testBye():
     standings = playerStandings(tournament)
 
     # 1st round: Check bye tallies
-    for (i, n, s, m, o, b) in standings:
+    for (i, n, w, t, m, o, b) in standings:
         if i == id2 and b != 1:
             raise ValueError("Player two bye should be 1.")
         if i in (id1, id3) and b != 0:
@@ -262,7 +266,7 @@ def testBye():
     standings = playerStandings(tournament)
 
     # 2st round: Check bye tallies
-    for (i, n, s, m, o, b) in standings:
+    for (i, n, w, t, m, o, b) in standings:
         if i == id1 and b != 0:
             raise ValueError("Player one bye should be 0.")
         if i in (id2, id3) and b != 1:
@@ -283,25 +287,30 @@ def testPairingsAndBye():
     registerPlayer("Applejack", tournament)
     registerPlayer("Pinkie Pie", tournament)
     registerPlayer("Brain", tournament)
-    standings = playerStandings(tournament)
-    [id1, id2, id3, id4, id5] = [row[0] for row in standings]
+    tournament_players = getTournamentPlayers(tournament)
+    [id1, id2, id3, id4, id5] = [row[0] for row in tournament_players]
 
+    # Twilight Sparkle has most wins, should be byed player
     reportMatch(tournament, id1, id2)
+    reportMatch(tournament, id1, id4)
     reportMatch(tournament, id3, id4)
+
     pairings = swissPairings(tournament)
     if len(pairings) != 2:
         raise ValueError(
             "For five players, swissPairings should return two pairs.")
     [(pid1, pname1, pid2, pname2), (pid3, pname3, pid4, pname4)] = pairings
-    correct_pairs = set([frozenset([id3, id2]), frozenset([id4, id5])])
-    actual_pairs = set([frozenset([pid1, pid2]), frozenset([pid3, pid4])])
-    if correct_pairs != actual_pairs:
-        raise ValueError(
-            "After one match, byed player should not be paired.")
-    print "8b. After one match, byed players excluded. Pairings are good."
+
+    for (i1, n1, i2, n2) in pairings:
+        if n1 == "Twilight Sparkle" or n2 == "Twilight Sparkle":
+            raise ValueError("After one match, byed player should not be paired.")
+            break
+
+    print "8b. After one match, byed player excluded. Pairings are good."
 
 
 if __name__ == '__main__':
+
     testDeleteMatches()
     testDelete()
     testCount()
@@ -312,9 +321,7 @@ if __name__ == '__main__':
     testReportMatches()
     testReportTieMatches()
     testPlayerStandingsOmw()
-    """
     testPairings()
     testBye()
     testPairingsAndBye()
-    """
     print "Success!  All tests pass!"

@@ -133,8 +133,8 @@ def registerPlayer(name, t_id):
     """
     db, c = connect()
 
-    query_player = "INSERT INTO players (name, tournament) VALUES(%s, %s)"
-    c.execute(query_player, (name, t_id))
+    query_player = "INSERT INTO players (name, tournament, byes) VALUES(%s, %s, %s)"
+    c.execute(query_player, (name, t_id, 0))
 
     db.commit()
     db.close()
@@ -251,13 +251,13 @@ def checkForEvenPlayers(players, t_id):
         db, c = connect()
 
         # Get player standings and select 1st place player without a bye (id)
-        query = """SELECT player FROM player_standings WHERE bye = 0
-                   ORDER BY score DESC, matches DESC LIMIT 1"""
+        query = """SELECT player FROM player_standings WHERE byes = 0
+                   ORDER BY wins DESC, matches DESC LIMIT 1"""
         c.execute(query)
         id = c.fetchone()[0]
 
-        # Update player with (id) to have a bye
-        query_bye = "UPDATE player_standings SET bye=1 WHERE player = %s"
+        # Update player with (id) to have a bye in players table
+        query_bye = "UPDATE players SET byes=1 WHERE id = %s"
         c.execute(query_bye, (id,))
 
         # Get List of players excluding player with (id)
@@ -265,7 +265,7 @@ def checkForEvenPlayers(players, t_id):
                            FROM player_standings AS ps, players AS p
                            WHERE ps.player != %s AND ps.player = p.id
                            AND ps.tournament = %s
-                           ORDER BY score DESC, matches DESC"""
+                           ORDER BY wins DESC, matches DESC"""
         c.execute(query_players, (id, t_id))
         players_modified = c.fetchall()
 
@@ -303,7 +303,7 @@ def swissPairings(t_id):
     query = """SELECT ps.player, p.name
                FROM player_standings AS ps, players AS p
                WHERE ps.player = p.id AND ps.tournament = %s
-               ORDER BY score DESC, matches DESC"""
+               ORDER BY ps.wins DESC, ps.ties DESC"""
     c.execute(query, (t_id,))
     players = c.fetchall()
 
